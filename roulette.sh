@@ -25,14 +25,47 @@ function helpPanel ()
   echo -e "\t${purpleColour}[H]${endColour} ${grayColour}Use this progam as follows: ${endColour}\n"
   echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Martingala: -m [money-amount] -t martingala ${endColour}\n"
   echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Inverse Labrouchere: -m [money-amount] -t inverseLabrouchere ${endColour}\n"
-
+  echo -e "\n${purpleColour}[X]${endColour} ${yellowColour}Make sure that your enter an amount of money greater than zero and technique martingla/inverseLabrouchere!${endColour}\n"
   exit 1
 }
 
 # Martingala
 function martingala ()
 {
+  money="$1"
+  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour}\n"
+  echo -ne "\n[>$] Enter your bet: " && read initial_bet
+  echo -ne "\n[~]Enter if yo go for even/odd: " && read even_odd
+
+  echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   
+  bet=$initial_bet
+  declare -i game=0
+  while true; do
+    # verifying money
+    if [ $money -gt $bet ];then
+      # count game
+      let game+=1
+      # generate random number 0-36
+      random_number="$(($RANDOM%37))"
+      echo -e "$random_number"
+      
+      if [ $random_number -eq 0 ];then  
+        echo -e "perdemos\n"
+      elif [ $(($random_number%2)) -eq 0 ]; then
+        echo -e "par\n"
+      else
+        echo -e "impar\n"
+      fi
+    else
+      echo -e "\nYou don't have enough money to bet!\n"
+      exit 0
+    fi
+
+    sleep 3
+
+  done
+
 }
 
 # Catching data
@@ -44,9 +77,10 @@ while getopts "m:t:h" param; do
   esac
 done
 
-if [ $money ] && [ $technique ]; then
+if [ $money -gt 0 ] && [ $technique ]; then
   if [ $technique == "martingala" ]; then
     echo -e "Martingala\n"
+    martingala $money
   elif [ $technique == "inverseLabrouchere" ]; then
     echo -e "Inverse Labrouchere\n"
   else
