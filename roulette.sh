@@ -40,9 +40,12 @@ function martingala ()
   echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   
   bet=$initial_bet # bet as initial_bet to start the game
+  initial_money=$money
   declare -i match=0 # count number of matches
   declare -i player=0 # flag: player plays
+  declare -i luck=0
   output="" # roulette output even/odd
+  bad_matches=()
 
   while true; do
     # verifying money
@@ -51,47 +54,48 @@ function martingala ()
       let match+=1
       # generate random number 0-36
       random_number="$(($RANDOM%37))"
-      echo -e "$random_number"
-      
+      # roulette output
       if [ $random_number -eq 0 ];then  
-        echo -e "perdemos\n"
         player=1; # house game, players lose
       elif [ $(($random_number%2)) -eq 0 ]; then
-        echo -e "par\n"
         output="even"
         player=0 # player is playing
       else
-        echo -e "impar\n"
         output="odd"
         player=0 # player is playing
       fi
 
+      # martingala technique algorithm
       if [ $output == $even_odd ] && [ $player -eq 0 ]; then
-        echo -e "ganamos"
+        ((money += bet))
         bet=$initial_bet # if player wins bet should be as initial_bet
-        echo -e "\nbet $bet"
+        luck=0
 
       elif [ $output != $even_odd ] && [ $player -eq 0 ]; then
-        echo -e "pierdes"
-        #bet=$(($bet*2))
+        ((money -= bet))
         ((bet *= 2)) # player loses bet duplicates
-        echo -e "\nbet $bet"
+        luck=1
 
       else
-        echo -e "gana la casa"
+        ((money -= bet))
         ((bet *= 2)) # house wins, player loses bet duplicates
-        echo -e "\nbet $bet"
+        luck=1
       fi
-      echo -e "\n partida $match"
+      
+      if [ $luck -eq 1 ]; then
+        bad_matches+=($random_number)
+      else
+        bad_matches=()
+      fi
     else # game over with summary
-      echo -e "\nYou don't have enough money to bet!\n"
+      echo -e "\n${redColour}[!] You don't have enough money to bet!${endColour}\n"
+      echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} \n"
+      echo -e "\t${purpleColour}[x]${endColour} ${grayColour}You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour}\n"
+      echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Your consecutive lost matches are:${endColour} ${turquoiseColour}[ ${bad_matches[@]} ] ${endColour}\n"
+
       exit 0
     fi
-
-    sleep 1
-
   done
-
 }
 
 # Catching data
