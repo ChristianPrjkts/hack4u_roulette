@@ -23,10 +23,16 @@ trap ctrl_c INT
 function helpPanel ()
 {
   echo -e "\t${purpleColour}[H]${endColour} ${grayColour}Use this progam as follows: ${endColour}\n"
-  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Martingala: -m [money-amount] -t "martingala" ${endColour}\n"
-  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Inverse Labrouchere: -m [money-amount] -t "inverseLabrouchere" ${endColour}\n"
+  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Martingala: -m [money-amount] -t martingala ${endColour}\n"
+  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Inverse Labrouchere: -m [money-amount] -t inverseLabrouchere ${endColour}\n"
 
   exit 1
+}
+
+# Martingala
+function martingala ()
+{
+  
 }
 
 # Catching data
@@ -34,7 +40,7 @@ while getopts "m:t:h" param; do
   case $param in
     m) money="$OPTARG";;
     t) technique="$OPTARG";;
-    h)helpPanel;;
+    h) helpPanel;;
   esac
 done
 
