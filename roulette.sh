@@ -39,30 +39,56 @@ function martingala ()
 
   echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   
-  bet=$initial_bet
-  declare -i game=0
+  bet=$initial_bet # bet as initial_bet to start the game
+  declare -i match=0 # count number of matches
+  declare -i player=0 # flag: player plays
+  output="" # roulette output even/odd
+
   while true; do
     # verifying money
     if [ $money -gt $bet ];then
       # count game
-      let game+=1
+      let match+=1
       # generate random number 0-36
       random_number="$(($RANDOM%37))"
       echo -e "$random_number"
       
       if [ $random_number -eq 0 ];then  
         echo -e "perdemos\n"
+        player=1; # house game, players lose
       elif [ $(($random_number%2)) -eq 0 ]; then
         echo -e "par\n"
+        output="even"
+        player=0 # player is playing
       else
         echo -e "impar\n"
+        output="odd"
+        player=0 # player is playing
       fi
-    else
+
+      if [ $output == $even_odd ] && [ $player -eq 0 ]; then
+        echo -e "ganamos"
+        bet=$initial_bet # if player wins bet should be as initial_bet
+        echo -e "\nbet $bet"
+
+      elif [ $output != $even_odd ] && [ $player -eq 0 ]; then
+        echo -e "pierdes"
+        #bet=$(($bet*2))
+        ((bet *= 2)) # player loses bet duplicates
+        echo -e "\nbet $bet"
+
+      else
+        echo -e "gana la casa"
+        ((bet *= 2)) # house wins, player loses bet duplicates
+        echo -e "\nbet $bet"
+      fi
+      echo -e "\n partida $match"
+    else # game over with summary
       echo -e "\nYou don't have enough money to bet!\n"
       exit 0
     fi
 
-    sleep 3
+    sleep 1
 
   done
 
