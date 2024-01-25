@@ -3,29 +3,29 @@ This is a program that emulates some roulette techniques to win in even/odd game
 Some changes have been done from original code (hack4u academy)
 flags to make desitions in conditionals
 
-  declare -i match=0 # count number of matches
-  declare -i player=0 # flag: player plays
+  declare -i match=0 -> count number of matches
+  declare -i player=0 -> flag: player plays
   declare -i luck=0
 
 In while bucle some chages were made
 the logic for confitional was changed
 
   while true; do
-    # verifying money
+     verifying money
     if [ $money -gt $bet ];then
-      # count game
+       count game
       let match+=1
-      # generate random number 0-36
+       generate random number 0-36
       random_number="$(($RANDOM%37))"
-      # roulette output
+       roulette output
       if [ $random_number -eq 0 ];then  
-        player=1; # house game, players lose
+        player=1; -> house game, players lose
       elif [ $(($random_number%2)) -eq 0 ]; then
         output="even"
-        player=0 # player is playing
+        player=0 -> player is playing
       else
         output="odd"
-        player=0 # player is playing
+        player=0 -> player is playing
       fi
 
 

@@ -33,7 +33,7 @@ function helpPanel ()
 function martingala ()
 {
   money="$1"
-  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour}\n"
+  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Martingla${endColour} \n"
   echo -ne "\n[>$] Enter your bet: " && read initial_bet
   echo -ne "\n[~]Enter if yo go for even/odd: " && read even_odd
 
@@ -109,8 +109,8 @@ done
 
 if [ $money -gt 0 ] && [ $technique ]; then
   if [ $technique == "martingala" ]; then
-    echo -e "Martingala\n"
     martingala $money
+
   elif [ $technique == "inverseLabrouchere" ]; then
     echo -e "Inverse Labrouchere\n"
   else
