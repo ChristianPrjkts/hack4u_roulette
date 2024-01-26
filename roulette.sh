@@ -44,12 +44,13 @@ function martingala ()
   declare -i match=0 # count number of matches
   declare -i player=0 # flag: player plays
   declare -i luck=0
+  reward=0
   output="" # roulette output even/odd
   bad_matches=()
 
   while true; do
     # verifying money
-    if [ $money -gt $bet ];then
+    if [ $money -gt 0 ];then
       # count game
       let match+=1
       # generate random number 0-36
@@ -66,20 +67,29 @@ function martingala ()
       fi
 
       # martingala technique algorithm
-      if [ $output == $even_odd ] && [ $player -eq 0 ]; then
-        ((money += bet))
+      if [ $output == $even_odd ] && [ $player -eq 0 ]; then # you win
+       # echo -e "\nyour money $money\n"
+        reward=$((2 * bet))
+      #  echo -e "\nYou win\n"
+       # echo -e "Your bet was $bet\n"
+      #  echo -e "your reward is $reward\n"
+        ((money += reward))
+      #  echo -e "your money now is: $money\n"
         bet=$initial_bet # if player wins bet should be as initial_bet
+      #  echo -e "Your bet now is: $bet\n"
+        ((money-=bet))
+      #  echo -e "Your money is $money\n"
         luck=0
 
-      elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
+      elif [[ ($output != $even_odd && $player -eq 0) || $player -eq 1 ]]; then # you lose
+      #  echo -e "\nYpur money is: $money\n"
+      #  echo -e "perdiste con $random_number\n"
         ((money -= bet))
+      #  echo -e "Your money now is $money\n"
         ((bet *= 2)) # player loses bet duplicates
         luck=1
+      #  echo -e "your bet now is $bet\n"
 
-      #else
-      #  ((money -= bet))
-      #  ((bet *= 2)) # house wins, player loses bet duplicates
-      #  luck=1
       fi
       
       if [ $luck -eq 1 ]; then
@@ -88,8 +98,16 @@ function martingala ()
         bad_matches=()
       fi
     else # game over with summary
+
+      if [ "$money" -lt 0 ]; then
+        debt=$((money*(-1)))
+        money=0
+      else
+        debt=0
+      fi
+
       echo -e "\n${redColour}[!] You don't have enough money to bet!${endColour}\n"
-      echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} \n"
+      echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} ${grayColour}and your debt is${endColour} ${redColour}\$$debt${endColour} \n"
       echo -e "\t${purpleColour}[x]${endColour} ${grayColour}You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour}\n"
       echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Your consecutive lost matches are:${endColour} ${turquoiseColour}[ ${bad_matches[@]} ] ${endColour}\n"
 
@@ -117,18 +135,17 @@ function inverseLabouchere ()
   money="$1"
   
   echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Inverse Labouchere${endColour} \n"
-  echo -ne "\n[>$] Enter your bet: " && read initial_bet
+  #echo -ne "\n[>$] Enter your bet: " && read initial_bet
   echo -ne "\n[~] Enter if you go for even/odd: " && read even_odd
 
   echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   initial_money=$money
   declare -a sequence=()
-  bet=$initial_bet
+  readArray
+  bet=$((${sequence[0]}+${sequence[-1]}))
   declare -i match=0
   declare -i player=0
   output=""
-
-  readArray
 
   while true; do
     if [ $money -gt $bet]; then
@@ -150,7 +167,7 @@ function inverseLabouchere ()
       # martingala technique algorithm
       if [ $output == $even_odd ] && [ $player -eq 0 ]; then
         ((money += bet))
-        bet=$initial_bet # if player wins bet should be as initial_bet
+        ((bet=$initial_bet)) # if player wins bet should be as initial_bet
         luck=0
 
       elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
@@ -158,10 +175,6 @@ function inverseLabouchere ()
         ((bet *= 2)) # player loses bet duplicates
         luck=1
 
-      #else
-      #  ((money -= bet))
-      #  ((bet *= 2)) # house wins, player loses bet duplicates
-      #  luck=1
       fi
       
     else
