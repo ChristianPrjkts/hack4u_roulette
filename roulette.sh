@@ -24,8 +24,8 @@ function helpPanel ()
 {
   echo -e "\t${purpleColour}[H]${endColour} ${grayColour}Use this progam as follows: ${endColour}\n"
   echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Martingala: -m [money-amount] -t martingala ${endColour}\n"
-  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Inverse Labrouchere: -m [money-amount] -t inverseLabrouchere ${endColour}\n"
-  echo -e "\n${purpleColour}[X]${endColour} ${yellowColour}Make sure that your enter an amount of money greater than zero and technique martingla/inverseLabrouchere!${endColour}\n"
+  echo -e "\t${purpleColour}[+]${endColour} ${grayColour}Inverse Labouchere: -m [money-amount] -t inverseLabouchere ${endColour}\n"
+  echo -e "\n${purpleColour}[X]${endColour} ${yellowColour}Make sure that your enter an amount of money greater than zero and technique martingla/inverseLabouchere!${endColour}\n"
   exit 1
 }
 
@@ -33,9 +33,9 @@ function helpPanel ()
 function martingala ()
 {
   money="$1"
-  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Martingla${endColour} \n"
+  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Martingala${endColour} \n"
   echo -ne "\n[>$] Enter your bet: " && read initial_bet
-  echo -ne "\n[~]Enter if yo go for even/odd: " && read even_odd
+  echo -ne "\n[~]Enter if you go for even/odd: " && read even_odd
 
   echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   
@@ -71,15 +71,15 @@ function martingala ()
         bet=$initial_bet # if player wins bet should be as initial_bet
         luck=0
 
-      elif [ $output != $even_odd ] && [ $player -eq 0 ]; then
+      elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
         ((money -= bet))
         ((bet *= 2)) # player loses bet duplicates
         luck=1
 
-      else
-        ((money -= bet))
-        ((bet *= 2)) # house wins, player loses bet duplicates
-        luck=1
+      #else
+      #  ((money -= bet))
+      #  ((bet *= 2)) # house wins, player loses bet duplicates
+      #  luck=1
       fi
       
       if [ $luck -eq 1 ]; then
@@ -98,6 +98,85 @@ function martingala ()
   done
 }
 
+# read to set sequence
+function readArray ()
+{
+  declare -i array_size=0
+
+  echo -ne "\nEnter the size of the array: " && read array_size
+
+  for ((i=0; i<array_size; i++)); do
+    echo -ne "Enter the element[$i]: " && read sequence[$i]
+  done
+ 
+}
+
+# labouchere method
+function inverseLabouchere ()
+{
+  money="$1"
+  
+  echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Inverse Labouchere${endColour} \n"
+  echo -ne "\n[>$] Enter your bet: " && read initial_bet
+  echo -ne "\n[~] Enter if you go for even/odd: " && read even_odd
+
+  echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
+  initial_money=$money
+  declare -a sequence=()
+  bet=$initial_bet
+  declare -i match=0
+  declare -i player=0
+  output=""
+
+  readArray
+
+  while true; do
+    if [ $money -gt $bet]; then
+      let match+=1
+
+      # generate random number 0-36
+      random_number="$(($RANDOM%37))"
+      # roulette output
+      if [ $random_number -eq 0 ];then  
+        player=1; # house game, players lose
+      elif [ $(($random_number%2)) -eq 0 ]; then
+        output="even"
+        player=0 # player is playing
+      else
+        output="odd"
+        player=0 # player is playing
+      fi
+
+      # martingala technique algorithm
+      if [ $output == $even_odd ] && [ $player -eq 0 ]; then
+        ((money += bet))
+        bet=$initial_bet # if player wins bet should be as initial_bet
+        luck=0
+
+      elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
+        ((money -= bet))
+        ((bet *= 2)) # player loses bet duplicates
+        luck=1
+
+      #else
+      #  ((money -= bet))
+      #  ((bet *= 2)) # house wins, player loses bet duplicates
+      #  luck=1
+      fi
+      
+    else
+      echo "You don't have enough money to bet!\n"
+    fi
+  done
+
+  echo -e "la secuencia es: [ ${sequence[@]} ]"
+
+  suma=$((${sequence[0]} + ${sequence[-1]}))
+
+  echo -e "la suma es $suma"
+
+}
+
 # Catching data
 while getopts "m:t:h" param; do
   case $param in
@@ -111,8 +190,8 @@ if [ $money -gt 0 ] && [ $technique ]; then
   if [ $technique == "martingala" ]; then
     martingala $money
 
-  elif [ $technique == "inverseLabrouchere" ]; then
-    echo -e "Inverse Labrouchere\n"
+  elif [ $technique == "inverseLabouchere" ]; then
+    inverseLabouchere $money
   else
      helpPanel
   fi
