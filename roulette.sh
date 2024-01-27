@@ -45,12 +45,17 @@ function martingala ()
   declare -i player=0 # flag: player plays
   declare -i luck=0
   reward=0
+  debt=0 # start without debts
+  chance=1 # chances if you dont have money for bet
   output="" # roulette output even/odd
   bad_matches=()
 
   while true; do
     # verifying money
-    if [ $money -gt 0 ];then
+    if [ $money -ge $bet ];then
+      # betting and reduce money
+      ((money-=bet))
+      #echo -e "New game: your bet is $bet and your money is $money\n"
       # count game
       let match+=1
       # generate random number 0-36
@@ -68,28 +73,46 @@ function martingala ()
 
       # martingala technique algorithm
       if [ $output == $even_odd ] && [ $player -eq 0 ]; then # you win
-       # echo -e "\nyour money $money\n"
+        
         reward=$((2 * bet))
-      #  echo -e "\nYou win\n"
-       # echo -e "Your bet was $bet\n"
-      #  echo -e "your reward is $reward\n"
+        #echo -e "\nYou win with $random_number!!\n"
+        #echo -e "Your bet was $bet\n"
+        #echo -e "your reward is $reward\n"
         ((money += reward))
-      #  echo -e "your money now is: $money\n"
+        #echo -e "your money now is: $money\n"
+
+        if [ $debt -gt 0 ]; then
+        #  echo -e "pagando deuda\n"
+          ((money-=debt))
+          debt=0
+          chance=1
+        #  echo -e "tu dinero es $money tu deuda es $debt tu oportunidad es $chance\n"
+        fi
+
         bet=$initial_bet # if player wins bet should be as initial_bet
-      #  echo -e "Your bet now is: $bet\n"
-        ((money-=bet))
-      #  echo -e "Your money is $money\n"
         luck=0
 
       elif [[ ($output != $even_odd && $player -eq 0) || $player -eq 1 ]]; then # you lose
-      #  echo -e "\nYpur money is: $money\n"
-      #  echo -e "perdiste con $random_number\n"
-        ((money -= bet))
-      #  echo -e "Your money now is $money\n"
-        ((bet *= 2)) # player loses bet duplicates
-        luck=1
-      #  echo -e "your bet now is $bet\n"
+        #echo -e "perdiste con $random_number !!\n"
+        ((bet*=2)) # bet should be
+        #echo -e "tienes de dinero restante $money\n"
+        # House lends you money to play on more time
+        if [[ ("$bet" -gt "$money") && ("$chance" -gt 0) ]]; then
+        #  echo -e "dinero menor que apuesta\n"
+          debt=$((bet-money))
+          ((chance-=1))
+          ((money+=debt))
 
+        #  echo -e "perdiste y la casa te presta $debt y tienes oportunidades $chance\n"
+
+        elif [[ $bet -gt $money && $chance -eq 0 ]]; then
+         # echo -e "tu dinero es $money la casa no te presta tu deuda es $debt"
+          money=0
+         # echo -e "fin del juego\n"
+        fi
+
+        luck=1
+        
       fi
       
       if [ $luck -eq 1 ]; then
@@ -97,15 +120,8 @@ function martingala ()
       else
         bad_matches=()
       fi
+
     else # game over with summary
-
-      if [ "$money" -lt 0 ]; then
-        debt=$((money*(-1)))
-        money=0
-      else
-        debt=0
-      fi
-
       echo -e "\n${redColour}[!] You don't have enough money to bet!${endColour}\n"
       echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} ${grayColour}and your debt is${endColour} ${redColour}\$$debt${endColour} \n"
       echo -e "\t${purpleColour}[x]${endColour} ${grayColour}You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour}\n"
