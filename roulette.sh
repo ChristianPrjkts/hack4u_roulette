@@ -129,6 +129,7 @@ function martingala ()
 
       exit 0
     fi
+
   done
 }
 
@@ -145,6 +146,13 @@ function readArray ()
  
 }
 
+function sumArray ()
+{
+  for ((i=0; i < ${#sequence[@]}; i++)); do
+    ((sum+=${sequence[$i]}))
+  done
+}
+
 # labouchere method
 function inverseLabouchere ()
 {
@@ -154,55 +162,73 @@ function inverseLabouchere ()
   #echo -ne "\n[>$] Enter your bet: " && read initial_bet
   echo -ne "\n[~] Enter if you go for even/odd: " && read even_odd
 
-  echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
+  #echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   initial_money=$money
   declare -a sequence=()
-  readArray
-  bet=$((${sequence[0]}+${sequence[-1]}))
+  #readArray
+  #bet=$((${sequence[0]}+${sequence[-1]}))
   declare -i match=0
   declare -i player=0
+  sum=0
   output=""
 
   while true; do
-    if [ $money -gt $bet]; then
-      let match+=1
-
-      # generate random number 0-36
-      random_number="$(($RANDOM%37))"
-      # roulette output
-      if [ $random_number -eq 0 ];then  
-        player=1; # house game, players lose
-      elif [ $(($random_number%2)) -eq 0 ]; then
-        output="even"
-        player=0 # player is playing
-      else
-        output="odd"
-        player=0 # player is playing
-      fi
-
-      # martingala technique algorithm
-      if [ $output == $even_odd ] && [ $player -eq 0 ]; then
-        ((money += bet))
-        ((bet=$initial_bet)) # if player wins bet should be as initial_bet
-        luck=0
-
-      elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
-        ((money -= bet))
-        ((bet *= 2)) # player loses bet duplicates
-        luck=1
-
-      fi
+    if [ $money -gt 0 ]; then
       
+      if [ ${#sequence[@]} -eq 0 ]; then
+        readArray
+        sumArray
+      fi
+      echo -e "sum is $sum"
+
+      if [ $sum -le $money ]; then # validating sequence
+        let match+=1
+        echo -e "in game!!\n"
+        # generate random number 0-36
+        #random_number="$(($RANDOM%37))"
+        # roulette output
+        #if [ $random_number -eq 0 ];then  
+        #  player=1; # house game, players lose
+        #elif [ $(($random_number%2)) -eq 0 ]; then
+        #  output="even"
+        #  player=0 # player is playing
+        #else
+        #  output="odd"
+        #  player=0 # player is playing
+        #fi
+
+        # inverse labouchere technique algorithm
+        #if [ $output == $even_odd ] && [ $player -eq 0 ]; then
+         # ((money += bet))
+         # ((bet=$initial_bet)) # if player wins bet should be as initial_bet
+          
+         # luck=0
+
+        #elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
+        #  ((money -= bet))
+        #  ((bet *= 2)) # player loses bet duplicates
+          
+        #  luck=1
+
+        #fi
+      else
+        echo -e "the sum of the values should be less or equal than your money: $money\n" 
+        sum=0
+        sequence=()
+      fi
     else
       echo "You don't have enough money to bet!\n"
     fi
+
+    sleep 5
+
   done
 
   echo -e "la secuencia es: [ ${sequence[@]} ]"
 
   suma=$((${sequence[0]} + ${sequence[-1]}))
 
-  echo -e "la suma es $suma"
+  echo -e "la suma de extremos es $suma"
 
 }
 
