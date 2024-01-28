@@ -184,33 +184,43 @@ function inverseLabouchere ()
       if [ $sum -le $money ]; then # validating sequence
         let match+=1
         echo -e "in game!!\n"
+        bet=$((${sequence[0]} + ${sequence[-1]}))
+        ((money-=bet))
         # generate random number 0-36
-        #random_number="$(($RANDOM%37))"
+        random_number="$(($RANDOM%37))"
         # roulette output
-        #if [ $random_number -eq 0 ];then  
-        #  player=1; # house game, players lose
-        #elif [ $(($random_number%2)) -eq 0 ]; then
-        #  output="even"
-        #  player=0 # player is playing
-        #else
-        #  output="odd"
-        #  player=0 # player is playing
-        #fi
+        if [ $random_number -eq 0 ];then  
+          player=1; # house game, players lose
+        elif [ $(($random_number%2)) -eq 0 ]; then
+          output="even"
+          player=0 # player is playing
+        else
+          output="odd"
+          player=0 # player is playing
+        fi
 
         # inverse labouchere technique algorithm
-        #if [ $output == $even_odd ] && [ $player -eq 0 ]; then
-         # ((money += bet))
-         # ((bet=$initial_bet)) # if player wins bet should be as initial_bet
-          
-         # luck=0
+        if [ $output == $even_odd ] && [ $player -eq 0 ]; then # you win
+          echo -e "you win\n"
+          sequence+=($bet) 
+          sumArray
+          luck=0
 
-        #elif [ $output != $even_odd ] && [ $player -eq 0 ] || [ $player -eq 1 ]; then
-        #  ((money -= bet))
-        #  ((bet *= 2)) # player loses bet duplicates
-          
-        #  luck=1
+          echo -e "new sequence is ${sequence[@]}"
 
-        #fi
+        elif [[ ($output != $even_odd && $player -eq 0) ||  $player -eq 1 ]]; then # you lose
+          echo -e "you lose\n"
+        # deleting elements in array
+          unset "sequence[0]"
+          unset "sequence[-1]"
+
+          sequence=(${sequence[@]}) # update array
+          sumArray
+          luck=1
+
+          echo -e "la secuencia es: ${sequence[@]}\n"
+
+        fi
       else
         echo -e "the sum of the values should be less or equal than your money: $money\n" 
         sum=0
