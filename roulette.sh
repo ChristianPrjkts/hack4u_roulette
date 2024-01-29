@@ -161,6 +161,7 @@ function inverseLabouchere ()
   echo -e "\n${grayColour}[$] Your amount of money is${endColour} ${yellowColour}\$$money${endColour} ${grayColour}you are playing${endColour} ${blueColour}Inverse Labouchere${endColour} \n"
   #echo -ne "\n[>$] Enter your bet: " && read initial_bet
   echo -ne "\n[~] Enter if you go for even/odd: " && read even_odd
+  echo -ne "\n[?]Rewrite the sequence every time yuo finish a series?(y/n): " && read rewrite
 
   #echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   initial_money=$money
@@ -169,22 +170,33 @@ function inverseLabouchere ()
   #bet=$((${sequence[0]}+${sequence[-1]}))
   declare -i match=0
   declare -i player=0
+  declare -i new_seq=1 # to write new sequence
+  reward=0
+  declare -i debt=0
   sum=0
   output=""
 
   while true; do
     if [ $money -gt 0 ]; then
       
-      if [ ${#sequence[@]} -eq 0 ]; then
+      if [[ ${#sequence[@]} -eq 0 && $new_seq -eq 1 ]]; then
         readArray
         sumArray
+        initial_seq=${sequence[@]}
+        ((new_seq-=1))
       fi
       echo -e "sum is $sum"
 
       if [ $sum -le $money ]; then # validating sequence
         let match+=1
+        sum=0
         echo -e "in game!!\n"
-        bet=$((${sequence[0]} + ${sequence[-1]}))
+        if [ ${#sequence[@]} -gt 1 ]; then
+          bet=$((${sequence[0]} + ${sequence[-1]}))
+        else
+          bet=${sequence[0]}
+        fi
+        echo -e "bet is $bet\n"
         ((money-=bet))
         # generate random number 0-36
         random_number="$(($RANDOM%37))"
@@ -200,25 +212,27 @@ function inverseLabouchere ()
         fi
 
         # inverse labouchere technique algorithm
-        if [ $output == $even_odd ] && [ $player -eq 0 ]; then # you win
+        if [[ $output == $even_odd  &&  $player -eq 0 ]]; then # you win
           echo -e "you win\n"
+          reward=$((bet*2))
+          ((money+=reward))
           sequence+=($bet) 
           sumArray
           luck=0
 
-          echo -e "new sequence is ${sequence[@]}"
+          echo -e "new sequence is ${sequence[@]}, your bet was $bet and yuor reward is $reward, then your money $money\n"
 
         elif [[ ($output != $even_odd && $player -eq 0) ||  $player -eq 1 ]]; then # you lose
           echo -e "you lose\n"
         # deleting elements in array
           unset "sequence[0]"
-          unset "sequence[-1]"
+          unset "sequence[-1]" 2>/dev/null
 
           sequence=(${sequence[@]}) # update array
           sumArray
           luck=1
 
-          echo -e "la secuencia es: ${sequence[@]}\n"
+          echo -e "la nueva secuencia es: ${sequence[@]} tu dinero es: $money\n"
 
         fi
       else
@@ -226,19 +240,35 @@ function inverseLabouchere ()
         sum=0
         sequence=()
       fi
+      
+      # rewrite sequence
+      if [[ ${#sequence[@]} -eq 0 && $rewrite == 'n' ]]; then
+        echo -e "option n\n"
+        sequence=(${initial_seq[@]})
+        echo -e "\nKeeping initial sequence ${sequence[@]}\n"
+
+      elif [[ ${#sequence[@]} -eq 0 && $rewrite == 'y' ]]; then
+        echo -e "option y\n"
+        new_seq=1
+        echo -e "\nYou should rewrite the sequence, the last one was ${initial_seq[@]}\n"
+      fi
     else
+      if [ $money -le 0 ]; then
+        debt=$((money*-1))
+        money=0
+        
+      fi
       echo "You don't have enough money to bet!\n"
+      echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} ${grayColour}and your debt is${endColour} ${redColour}\$$debt${endColour} \n"
+      echo -e "\t${purpleColour}[x]${endColour} ${grayColour}You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour}\n"
+
+      exit 0
+ 
     fi
 
-    sleep 5
+    #sleep 5
 
   done
-
-  echo -e "la secuencia es: [ ${sequence[@]} ]"
-
-  suma=$((${sequence[0]} + ${sequence[-1]}))
-
-  echo -e "la suma de extremos es $suma"
 
 }
 
