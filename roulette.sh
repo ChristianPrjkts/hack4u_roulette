@@ -165,7 +165,9 @@ function inverseLabouchere ()
 
   #echo -e "\n${greenColour}[+]${endColour} ${grayColour}Playing with initial bet of${endColour} ${yellowColour}\$$initial_bet${endColour} ${blueColour}for $even_odd${endColour}\n"
   initial_money=$money
+  max_money=$money
   declare -a sequence=()
+  declare -a large_sequence=()
   #readArray
   #bet=$((${sequence[0]}+${sequence[-1]}))
   declare -i match=0
@@ -182,21 +184,24 @@ function inverseLabouchere ()
       if [[ ${#sequence[@]} -eq 0 && $new_seq -eq 1 ]]; then
         readArray
         sumArray
-        initial_seq=${sequence[@]}
+        initial_seq=(${sequence[@]})
+        large_sequence=(${sequence[@]})
         ((new_seq-=1))
       fi
-      echo -e "sum is $sum"
 
       if [ $sum -le $money ]; then # validating sequence
         let match+=1
         sum=0
-        echo -e "in game!!\n"
+        if [ ${#sequence[@]} -gt ${#large_sequence[@]} ]; then
+          large_sequence=(${sequence[@]})
+        fi
+        #echo -e "in game!!\n"
         if [ ${#sequence[@]} -gt 1 ]; then
           bet=$((${sequence[0]} + ${sequence[-1]}))
         else
           bet=${sequence[0]}
         fi
-        echo -e "bet is $bet\n"
+        #echo -e "bet is $bet\n"
         ((money-=bet))
         # generate random number 0-36
         random_number="$(($RANDOM%37))"
@@ -213,17 +218,18 @@ function inverseLabouchere ()
 
         # inverse labouchere technique algorithm
         if [[ $output == $even_odd  &&  $player -eq 0 ]]; then # you win
-          echo -e "you win\n"
           reward=$((bet*2))
           ((money+=reward))
+          if [ $money -gt $max_money ]; then
+            max_money=$money
+          fi
           sequence+=($bet) 
           sumArray
           luck=0
 
-          echo -e "new sequence is ${sequence[@]}, your bet was $bet and yuor reward is $reward, then your money $money\n"
+         # echo -e "new sequence is ${sequence[@]}, your bet was $bet and yuor reward is $reward, then your money $money\n"
 
         elif [[ ($output != $even_odd && $player -eq 0) ||  $player -eq 1 ]]; then # you lose
-          echo -e "you lose\n"
         # deleting elements in array
           unset "sequence[0]"
           unset "sequence[-1]" 2>/dev/null
@@ -232,25 +238,23 @@ function inverseLabouchere ()
           sumArray
           luck=1
 
-          echo -e "la nueva secuencia es: ${sequence[@]} tu dinero es: $money\n"
+          #echo -e "la nueva secuencia es: ${sequence[@]} tu dinero es: $money\n"
 
         fi
       else
-        echo -e "the sum of the values should be less or equal than your money: $money\n" 
+        #echo -e "the sum of the values should be less or equal than your money: $money\n" 
         sum=0
         sequence=()
       fi
       
       # rewrite sequence
       if [[ ${#sequence[@]} -eq 0 && $rewrite == 'n' ]]; then
-        echo -e "option n\n"
         sequence=(${initial_seq[@]})
-        echo -e "\nKeeping initial sequence ${sequence[@]}\n"
+       # echo -e "\nKeeping initial sequence ${sequence[@]}\n"
 
       elif [[ ${#sequence[@]} -eq 0 && $rewrite == 'y' ]]; then
-        echo -e "option y\n"
         new_seq=1
-        echo -e "\nYou should rewrite the sequence, the last one was ${initial_seq[@]}\n"
+       # echo -e "\nYou should rewrite the sequence, the last one was ${initial_seq[@]}\n"
       fi
     else
       if [ $money -le 0 ]; then
@@ -258,9 +262,9 @@ function inverseLabouchere ()
         money=0
         
       fi
-      echo "You don't have enough money to bet!\n"
+      echo -e "${redColour}[!] You don't have enough money to bet!${endColour}\n"
       echo -e "\t${greenColour}[$]${endColour} ${grayColour}You started with${endColour} ${yellowColour}\$$initial_money${endColour} ${grayColour}and turned out with${endColour} ${yellowColour}\$$money${endColour} ${grayColour}and your debt is${endColour} ${redColour}\$$debt${endColour} \n"
-      echo -e "\t${purpleColour}[x]${endColour} ${grayColour}You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour}\n"
+      echo -e "\t${purpleColour}[x]${endColour} ${grayColour} You played${endColour} ${blueColour}$match${endColour} ${grayColour}matches${endColour} ${grayColour}& your max money was${endColour} ${yellowColour}\$$max_money${endColour} ${grayColour}& large sequence was:${endColour} ${blueColour}[ ${large_sequence[@]} ]${endColour}\n"
 
       exit 0
  
